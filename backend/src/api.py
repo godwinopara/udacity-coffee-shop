@@ -19,7 +19,7 @@ CORS(app)
 !! NOTE THIS MUST BE UNCOMMENTED ON FIRST RUN
 !! Running this function will add one
 '''
-# db_drop_and_create_all()
+db_drop_and_create_all()
 
 # ROUTES
 '''
@@ -238,13 +238,13 @@ def not_allowed(error):
 '''
 
 
-@app.errorhandler(401)
+@app.errorhandler(AuthError)
 def unauthorized(error):
     return jsonify({
         "success": False,
-        "error": 401,
-        "message": "unauthorized"
-    }), 401
+        "error": error.status_code,
+        "message": error.error['description']
+    }), error.status_code
 
 
 if __name__ == "__main__":
