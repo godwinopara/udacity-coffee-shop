@@ -1,6 +1,8 @@
+from crypt import methods
 import os
 from re import A
 from flask import Flask, request, jsonify, abort
+from numpy import require
 from sqlalchemy import exc
 import json
 from flask_cors import CORS
@@ -106,6 +108,21 @@ def add_drink():
     returns status code 200 and json {"success": True, "drinks": drink} where drink an array containing only the updated drink
         or appropriate status code indicating reason for failure
 '''
+
+
+@app.route('/drinks/<id>', methods=["PATCH"])
+@requires_auth('patch:drinks')
+def edit_drinks(id):
+    try:
+        data = request.get_json()
+
+        drink = Drink.query.get(id)
+
+        drink.title = data.get('title')
+        drink.recipe = data.get('recipe')
+
+    except:
+        abort(404)
 
 
 '''
