@@ -2,7 +2,6 @@ from crypt import methods
 import os
 from re import A
 from flask import Flask, request, jsonify, abort
-from numpy import require
 from sqlalchemy import exc
 import json
 from flask_cors import CORS
@@ -20,7 +19,7 @@ CORS(app)
 !! NOTE THIS MUST BE UNCOMMENTED ON FIRST RUN
 !! Running this function will add one
 '''
-db_drop_and_create_all()
+# db_drop_and_create_all()
 
 # ROUTES
 '''
@@ -36,13 +35,17 @@ db_drop_and_create_all()
 @app.route('/drinks')
 def get_drinks():
 
-    drinks = Drink.query.all()
-    format_drinks = [drink.short for drink in drinks]
+    try:
 
-    return jsonify({
-        "success": True,
-        "drinks": format_drinks
-    })
+        drinks = Drink.query.all()
+        format_drinks = [drink.short() for drink in drinks]
+
+        return jsonify({
+            "success": True,
+            "drinks": format_drinks
+        })
+    except:
+        abort(404)
 
 
 '''
@@ -58,12 +61,16 @@ def get_drinks():
 @app.route('/drinks-detail')
 @requires_auth('get:drinks-detail')
 def get_drinks_details():
-    drinks = Drink.query.all()
-    formated_drinks = [drink.long() for drink in drinks]
-    return jsonify({
-        "success": True,
-        "drinks": formated_drinks
-    })
+
+    try:
+        drinks = Drink.query.all()
+        formated_drinks = [drink.long() for drink in drinks]
+        return jsonify({
+            "success": True,
+            "drinks": formated_drinks
+        })
+    except:
+        abort(401)
 
 
 '''
@@ -80,21 +87,25 @@ def get_drinks_details():
 @app.route('/drinks', methods=["POST"])
 @requires_auth('post:drinks')
 def add_drink():
-    data = request.get_json()
-    title = data.get('title')
-    recipe = data.get('recipe')
 
-    new_drink = Drink(title=title, recipe=recipe)
-    new_drink.insert()
+    try:
+        data = request.get_json()
+        title = data.get('title')
+        recipe = data.get('recipe')
 
-    drinks = Drink.query.all()
+        new_drink = Drink(title=title, recipe=recipe)
+        new_drink.insert()
 
-    formated_drinks = [drink.long() for drink in drinks]
+        drinks = Drink.query.all()
 
-    return jsonify({
-        "success": True,
-        "drinks": formated_drinks
-    })
+        formated_drinks = [drink.long() for drink in drinks]
+
+        return jsonify({
+            "success": True,
+            "drinks": formated_drinks
+        })
+    except:
+        abort(401)
 
 
 '''
@@ -194,10 +205,47 @@ def unprocessable(error):
 '''
 
 
+@app.errorhandler(404)
+def not_found(error):
+    return jsonify({
+        "success": False,
+        "error": 404,
+        "message": "resource not found"
+    }), 404
+
+
+@app.errorhandler(400)
+def bad_request(error):
+    return jsonify({
+        "success": False,
+        "error": 400,
+        "message": "Bad Request"
+    }), 400
+
+
+@app.errorhandler(405)
+def not_allowed(error):
+    return jsonify({
+        "success": False,
+        "error": 405,
+        "message": "method not allowed"
+    }), 405
+
+
 '''
 @TODO implement error handler for AuthError
     error handler should conform to general task above
 '''
+
+
+@app.errorhandler(401)
+def unauthorized(error):
+    return jsonify({
+        "success": False,
+        "error": 401,
+        "message": "unauthorized"
+    }), 401
+
 
 if __name__ == "__main__":
     app.debug = True

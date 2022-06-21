@@ -195,5 +195,3 @@ def requires_auth(permission=''):
 
         return wrapper
     return requires_auth_decorator
-
-    # https://dev-godwin.us.auth0.com/authorize?audience=drink&response_type=token&client_id=Q25AVDCzC5rL682JRUybSV47d0dnkpm1&redirect_uri=http://127.0.0.1:8080/login-result
